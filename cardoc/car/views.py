@@ -19,20 +19,26 @@ class TireListViewSet(CreateModelMixin, ListModelMixin, RetrieveModelMixin, Gene
     pagination_class = PageNumberPagination
 
     def create(self, request, *arg, **kwargs):
-        print(request.data)
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status = status.HTTP_201_CREATED)
+        datas = request.data
+        
+        if len(datas) > 5:
+            raise ValidationError('many data')
+
+        for data in datas:
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        return Response("created", status = status.HTTP_201_CREATED)
     
     def get_queryset(self):
         name = self.request.query_params.get('name')
-        user_id = User.objects.get(name = name).id
+        searchedData = Tire.objects.all()
 
         if name:
+            user_id = User.objects.get(name = name).id
             searchedData = Tire.objects.filter(user_id = user_id)
 
             if not searchedData:
                 raise ValidationError('no data')
 
-            return searchedData
+        return searchedData

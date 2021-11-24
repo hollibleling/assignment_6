@@ -93,7 +93,7 @@ class TireListSerializer(serializers.ModelSerializer):
         return tireSet
 
     def to_representation(self, instance):
-        user_id = self.context['request'].user.id
+        user_id = instance.user_id
         name = User.objects.get(id=user_id).name
 
         return {
