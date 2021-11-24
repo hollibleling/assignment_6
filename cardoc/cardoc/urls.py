@@ -22,9 +22,11 @@ from rest_framework_simplejwt.views import (
 )
 
 from user.views import UserViewSet
+from car.views import TireListViewSet
 
 router = routers.SimpleRouter(trailing_slash=False)
 router.register('user', UserViewSet, basename='user')
+router.register('tire', TireListViewSet, basename='tire')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
