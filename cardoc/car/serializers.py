@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
 import requests
+import re
 
 from user.models import User
 from car.models import Tire
@@ -17,42 +18,62 @@ class TireListSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         name = validated_data['name']
         trimId = validated_data['trimId']
-        user = self.context['request'].user
-
-        if name != user.name:
-            raise ValidationError('wrong request')
+        user = User.objects.get(name = name)
 
         url = "https://dev.mycar.cardoc.co.kr/v1/trim/" + str(trimId)
         response = requests.get(url)
         
         frontTire = response.json()['spec']['driving']['frontTire']['value']
-        frontWidth = frontTire.split('/')[0]
-        frontRemains = frontTire.split('/')[1]
         rearTire = response.json()['spec']['driving']['rearTire']['value']
-        rearWidth = rearTire.split('/')[0]
-        rearRemains = rearTire.split('/')[1]
-        
-        for i in ['R', 'ZR']:
-            if i in frontRemains:
-                frontRemains = frontRemains.split(i)
-                struct = i
-            else:
-                continue
-        
-        frontRatio = frontRemains[0]
-        frontSize = frontRemains[1]
-        frontStruct = struct
 
-        for i in ['R', 'ZR']:
-            if i in rearRemains:
-                rearRemains = rearRemains.split(i)
-                struct = i
-            else:
-                continue
+        tireRegex = re.compile(r'^[0-9]+/[0-9]+[a-zA-Z]+[0-9]+$')
+
+        if not tireRegex.match(frontTire) or not tireRegex.match(rearTire):
+            raise ValidationError('wrong type')
+
+        if frontTire == '':
+            frontWidth = 0
+            frontRatio = 0
+            frontSize = 0
+            frontStruct = ''
+
+        else:
+            frontWidth = frontTire.split('/')[0]
+            frontRemains = frontTire.split('/')[1]
         
-        rearRatio = rearRemains[0]
-        rearSize = rearRemains[1]
-        rearStruct = struct
+            for i in ['R', 'ZR']:
+                if i in frontRemains:
+                    frontRemains = frontRemains.split(i)
+                    struct = i
+                else:
+                    continue
+        
+            frontRatio = frontRemains[0]
+            frontSize = frontRemains[1]
+            frontStruct = struct
+
+        
+        if rearTire == '':
+            rearWidth = 0
+            rearRatio = 0
+            rearSize = 0
+            rearStruct = ''
+
+        else:
+            rearWidth = rearTire.split('/')[0]
+            rearRemains = rearTire.split('/')[1]
+
+
+            for i in ['R', 'ZR']:
+                if i in rearRemains:
+                    rearRemains = rearRemains.split(i)
+                    struct = i
+                else:
+                    continue
+            
+            rearRatio = rearRemains[0]
+            rearSize = rearRemains[1]
+            rearStruct = struct
 
         tireSet = Tire.objects.create(
             trimId = trimId,
