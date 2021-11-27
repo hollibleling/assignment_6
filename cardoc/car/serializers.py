@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
@@ -74,21 +75,21 @@ class TireListSerializer(serializers.ModelSerializer):
             rearRatio = rearRemains[0]
             rearSize = rearRemains[1]
             rearStruct = struct
-
-        tireSet = Tire.objects.create(
-            trimId = trimId,
-            frontTire = frontTire, 
-            frontWidth = frontWidth,
-            frontFlatnessRatio = frontRatio,
-            frontStruct = frontStruct,
-            frontWheelSize = frontSize,
-            rearTire = rearTire, 
-            rearWidth = rearWidth,
-            rearFlatnessRatio = rearRatio,
-            rearStruct = rearStruct,
-            rearWheelSize = rearSize,
-            user_id = user.id
-        )
+        with transaction.atomic():
+            tireSet = Tire.objects.create(
+                trimId = trimId,
+                frontTire = frontTire, 
+                frontWidth = frontWidth,
+                frontFlatnessRatio = frontRatio,
+                frontStruct = frontStruct,
+                frontWheelSize = frontSize,
+                rearTire = rearTire, 
+                rearWidth = rearWidth,
+                rearFlatnessRatio = rearRatio,
+                rearStruct = rearStruct,
+                rearWheelSize = rearSize,
+                user_id = user.id
+            )
 
         return tireSet
 
