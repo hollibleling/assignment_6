@@ -53,7 +53,6 @@ class TireListSerializer(serializers.ModelSerializer):
             frontSize = frontRemains[1]
             frontStruct = struct
 
-        
         if rearTire == '':
             rearWidth = 0
             rearRatio = 0
